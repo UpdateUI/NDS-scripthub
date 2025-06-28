@@ -2,7 +2,6 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
 
@@ -102,45 +101,30 @@ local PasswordFrame = Instance.new("Frame")
 PasswordFrame.Name = "PasswordFrame"
 PasswordFrame.Parent = PasswordGUI
 PasswordFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-PasswordFrame.BackgroundTransparency = 0.1
 PasswordFrame.BorderSizePixel = 0
 PasswordFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
 PasswordFrame.Size = UDim2.new(0, 300, 0, 200)
 PasswordFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 PasswordFrame.ClipsDescendants = true
 
--- Закругление углов
+-- Закругление углов (больше)
 local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.CornerRadius = UDim.new(0, 16)
 UICorner.Parent = PasswordFrame
 
--- Размытие фона
-local BlurEffect = Instance.new("BlurEffect")
-BlurEffect.Size = 10
-BlurEffect.Parent = game:GetService("Lighting")
-
--- Эффект свечения при фокусе
-local GlowEffect = Instance.new("ImageLabel")
-GlowEffect.Name = "GlowEffect"
-GlowEffect.Parent = PasswordFrame
-GlowEffect.BackgroundTransparency = 1
-GlowEffect.BorderSizePixel = 0
-GlowEffect.Size = UDim2.new(1, 20, 1, 20)
-GlowEffect.Position = UDim2.new(0, -10, 0, -10)
-GlowEffect.ZIndex = -1
-GlowEffect.Image = "rbxassetid://5028857084"
-GlowEffect.ImageColor3 = Color3.fromRGB(200, 200, 255)
-GlowEffect.ImageTransparency = 1
-GlowEffect.ScaleType = Enum.ScaleType.Slice
-GlowEffect.SliceCenter = Rect.new(24, 24, 24, 24)
-
--- Анимация свечения
-local glowTween = TweenService:Create(
-    GlowEffect,
-    TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, -1, true),
-    {ImageTransparency = 0.7}
-)
-glowTween:Play()
+-- Тень
+local DropShadow = Instance.new("ImageLabel")
+DropShadow.Name = "DropShadow"
+DropShadow.Parent = PasswordFrame
+DropShadow.BackgroundTransparency = 1
+DropShadow.BorderSizePixel = 0
+DropShadow.Size = UDim2.new(1, 0, 1, 0)
+DropShadow.ZIndex = -1
+DropShadow.Image = "rbxassetid://1316045217"
+DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+DropShadow.ImageTransparency = 0.8
+DropShadow.ScaleType = Enum.ScaleType.Slice
+DropShadow.SliceCenter = Rect.new(10, 10, 118, 118)
 
 -- Текст заголовка
 local TitleLabel = Instance.new("TextLabel")
@@ -173,25 +157,8 @@ PasswordBox.ShowNativeInput = false
 
 -- Закругление поля ввода
 local PasswordCorner = Instance.new("UICorner")
-PasswordCorner.CornerRadius = UDim.new(0, 8)
+PasswordCorner.CornerRadius = UDim.new(0, 12)
 PasswordCorner.Parent = PasswordBox
-
--- Эффект при фокусе
-PasswordBox.Focused:Connect(function()
-    TweenService:Create(
-        PasswordBox,
-        TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-        {BackgroundColor3 = Color3.fromRGB(235, 235, 235)}
-    ):Play()
-end)
-
-PasswordBox.FocusLost:Connect(function()
-    TweenService:Create(
-        PasswordBox,
-        TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-        {BackgroundColor3 = Color3.fromRGB(245, 245, 245)}
-    ):Play()
-end)
 
 -- Кнопка подтверждения
 local SubmitButton = Instance.new("TextButton")
@@ -208,7 +175,7 @@ SubmitButton.TextSize = 16
 
 -- Закругление кнопки
 local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 8)
+ButtonCorner.CornerRadius = UDim.new(0, 12)
 ButtonCorner.Parent = SubmitButton
 
 -- Анимация при наведении на кнопку
@@ -228,29 +195,11 @@ SubmitButton.MouseLeave:Connect(function()
     ):Play()
 end)
 
--- Анимация нажатия
-SubmitButton.MouseButton1Down:Connect(function()
-    TweenService:Create(
-        SubmitButton,
-        TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-        {BackgroundColor3 = Color3.fromRGB(210, 210, 210)}
-    ):Play()
-end)
-
-SubmitButton.MouseButton1Up:Connect(function()
-    TweenService:Create(
-        SubmitButton,
-        TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-        {BackgroundColor3 = Color3.fromRGB(220, 220, 220)}
-    ):Play()
-end)
-
 -- Функция проверки пароля
 local function CheckPassword()
     local enteredPassword = PasswordBox.Text
     
     if enteredPassword == PASSWORD then
-        -- Правильный пароль - анимация успеха
         ShowNotification("Успех", "Пароль верный!", Color3.fromRGB(0, 200, 0))
         
         TweenService:Create(
@@ -259,7 +208,6 @@ local function CheckPassword()
             {BackgroundColor3 = Color3.fromRGB(220, 255, 220)}
         ):Play()
         
-        -- Анимация исчезновения
         delay(1, function()
             TweenService:Create(
                 PasswordFrame,
@@ -275,12 +223,10 @@ local function CheckPassword()
             
             delay(0.5, function()
                 PasswordGUI:Destroy()
-                BlurEffect:Destroy()
                 CreateMainGUI()
             end)
         end)
     else
-        -- Неправильный пароль - анимация ошибки
         ShowNotification("Ошибка", "Неверный пароль!", Color3.fromRGB(255, 50, 50))
         
         -- Тряска
@@ -310,10 +256,7 @@ local function CheckPassword()
     end
 end
 
--- Обработчик нажатия кнопки
 SubmitButton.MouseButton1Click:Connect(CheckPassword)
-
--- Обработчик нажатия Enter в поле ввода
 PasswordBox.FocusLost:Connect(function(enterPressed)
     if enterPressed then
         CheckPassword()
@@ -335,45 +278,30 @@ function CreateMainGUI()
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = MainGUI
     MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    MainFrame.BackgroundTransparency = 0.1
     MainFrame.BorderSizePixel = 0
     MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
     MainFrame.Size = UDim2.new(0, 400, 0, 500)
     MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     MainFrame.ClipsDescendants = true
 
-    -- Закругление углов
+    -- Большие закругления
     local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 12)
+    MainCorner.CornerRadius = UDim.new(0, 16)
     MainCorner.Parent = MainFrame
 
-    -- Размытие фона
-    local BlurEffect = Instance.new("BlurEffect")
-    BlurEffect.Size = 10
-    BlurEffect.Parent = game:GetService("Lighting")
-
-    -- Эффект свечения
-    local GlowEffect = Instance.new("ImageLabel")
-    GlowEffect.Name = "GlowEffect"
-    GlowEffect.Parent = MainFrame
-    GlowEffect.BackgroundTransparency = 1
-    GlowEffect.BorderSizePixel = 0
-    GlowEffect.Size = UDim2.new(1, 20, 1, 20)
-    GlowEffect.Position = UDim2.new(0, -10, 0, -10)
-    GlowEffect.ZIndex = -1
-    GlowEffect.Image = "rbxassetid://5028857084"
-    GlowEffect.ImageColor3 = Color3.fromRGB(200, 200, 255)
-    GlowEffect.ImageTransparency = 1
-    GlowEffect.ScaleType = Enum.ScaleType.Slice
-    GlowEffect.SliceCenter = Rect.new(24, 24, 24, 24)
-
-    -- Анимация свечения
-    local glowTween = TweenService:Create(
-        GlowEffect,
-        TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, -1, true),
-        {ImageTransparency = 0.7}
-    )
-    glowTween:Play()
+    -- Тень
+    local DropShadow = Instance.new("ImageLabel")
+    DropShadow.Name = "DropShadow"
+    DropShadow.Parent = MainFrame
+    DropShadow.BackgroundTransparency = 1
+    DropShadow.BorderSizePixel = 0
+    DropShadow.Size = UDim2.new(1, 0, 1, 0)
+    DropShadow.ZIndex = -1
+    DropShadow.Image = "rbxassetid://1316045217"
+    DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    DropShadow.ImageTransparency = 0.8
+    DropShadow.ScaleType = Enum.ScaleType.Slice
+    DropShadow.SliceCenter = Rect.new(10, 10, 118, 118)
 
     -- Заголовок
     local MainTitle = Instance.new("TextLabel")
@@ -410,7 +338,7 @@ function CreateMainGUI()
 
     -- Закругление UserFrame
     local UserCorner = Instance.new("UICorner")
-    UserCorner.CornerRadius = UDim.new(0, 8)
+    UserCorner.CornerRadius = UDim.new(0, 12)
     UserCorner.Parent = UserFrame
 
     -- Аватар пользователя
@@ -453,7 +381,7 @@ function CreateMainGUI()
     DateLabel.TextSize = 14
     DateLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Кнопка закрытия
+    -- Кнопка закрытия (справа, прямоугольная)
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
     CloseButton.Parent = MainFrame
@@ -466,12 +394,12 @@ function CreateMainGUI()
     CloseButton.TextColor3 = Color3.fromRGB(50, 50, 50)
     CloseButton.TextSize = 16
 
-    -- Закругление кнопки закрытия
+    -- Закругление кнопки (меньше, прямоугольная)
     local CloseCorner = Instance.new("UICorner")
-    CloseCorner.CornerRadius = UDim.new(0, 8)
+    CloseCorner.CornerRadius = UDim.new(0, 6)
     CloseCorner.Parent = CloseButton
 
-    -- Анимация при наведении на кнопку закрытия
+    -- Анимация кнопки закрытия
     CloseButton.MouseEnter:Connect(function()
         TweenService:Create(
             CloseButton,
@@ -488,24 +416,6 @@ function CreateMainGUI()
         ):Play()
     end)
 
-    -- Анимация нажатия кнопки закрытия
-    CloseButton.MouseButton1Down:Connect(function()
-        TweenService:Create(
-            CloseButton,
-            TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {BackgroundColor3 = Color3.fromRGB(210, 210, 210)}
-        ):Play()
-    end)
-
-    CloseButton.MouseButton1Up:Connect(function()
-        TweenService:Create(
-            CloseButton,
-            TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {BackgroundColor3 = Color3.fromRGB(220, 220, 220)}
-        ):Play()
-    end)
-
-    -- Обработчик кнопки закрытия
     CloseButton.MouseButton1Click:Connect(function()
         ShowNotification("Информация", "Меню закрыто", Color3.fromRGB(150, 150, 255))
         
@@ -523,7 +433,6 @@ function CreateMainGUI()
         
         delay(0.5, function()
             MainGUI:Destroy()
-            BlurEffect:Destroy()
         end)
     end)
 
@@ -561,10 +470,10 @@ function CreateMainGUI()
 
         -- Закругление кнопки
         local buttonCorner = Instance.new("UICorner")
-        buttonCorner.CornerRadius = UDim.new(0, 8)
+        buttonCorner.CornerRadius = UDim.new(0, 12)
         buttonCorner.Parent = button
 
-        -- Эффект при наведении
+        -- Анимация при наведении
         button.MouseEnter:Connect(function()
             TweenService:Create(
                 button,
@@ -578,23 +487,6 @@ function CreateMainGUI()
                 button,
                 TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
                 {BackgroundColor3 = Color3.fromRGB(240, 240, 240)}
-            ):Play()
-        end)
-
-        -- Эффект нажатия
-        button.MouseButton1Down:Connect(function()
-            TweenService:Create(
-                button,
-                TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {BackgroundColor3 = Color3.fromRGB(220, 220, 220)}
-            ):Play()
-        end)
-
-        button.MouseButton1Up:Connect(function()
-            TweenService:Create(
-                button,
-                TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}
             ):Play()
         end)
 
@@ -623,7 +515,7 @@ function CreateMainGUI()
 
             -- Закругление подкнопки
             local subButtonCorner = Instance.new("UICorner")
-            subButtonCorner.CornerRadius = UDim.new(0, 6)
+            subButtonCorner.CornerRadius = UDim.new(0, 8)
             subButtonCorner.Parent = subButton
 
             -- Анимация подкнопки
@@ -643,23 +535,6 @@ function CreateMainGUI()
                 ):Play()
             end)
 
-            -- Эффект нажатия подкнопки
-            subButton.MouseButton1Down:Connect(function()
-                TweenService:Create(
-                    subButton,
-                    TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                    {BackgroundColor3 = Color3.fromRGB(210, 210, 210)}
-                ):Play()
-            end)
-
-            subButton.MouseButton1Up:Connect(function()
-                TweenService:Create(
-                    subButton,
-                    TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                    {BackgroundColor3 = Color3.fromRGB(220, 220, 220)}
-                ):Play()
-            end)
-
             -- Обработчик подкнопки
             subButton.MouseButton1Click:Connect(function()
                 ShowNotification("Скрипт", "Запускаем "..buttonInfo.subButton.name, Color3.fromRGB(100, 200, 255))
@@ -670,7 +545,6 @@ function CreateMainGUI()
             button.MouseButton1Click:Connect(function()
                 subButtonVisible = not subButtonVisible
                 
-                -- Анимация появления/исчезновения
                 if subButtonVisible then
                     subButton.Position = UDim2.new(0.15, 0, startY + (i-1)*(buttonHeight + buttonSpacing) + buttonHeight, 0)
                     subButton.Size = UDim2.new(0.7, 0, 0, 0)
@@ -694,11 +568,9 @@ function CreateMainGUI()
         end
     end
 
-    -- Делаем фрейм перемещаемым
-    local dragging
-    local dragInput
-    local dragStart
-    local startPos
+    -- Плавное перетаскивание
+    local dragging = false
+    local dragStart, startPos
 
     local function update(input)
         local delta = input.Position - dragStart
@@ -706,7 +578,7 @@ function CreateMainGUI()
     end
 
     MainFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
             startPos = MainFrame.Position
@@ -720,26 +592,8 @@ function CreateMainGUI()
     end)
 
     MainFrame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
+        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
             update(input)
-        end
-    end)
-
-    -- Обработчик F5 для скрытия/показа GUI
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if not gameProcessed and input.KeyCode == Enum.KeyCode.F5 then
-            MainGUI.Enabled = not MainGUI.Enabled
-            if MainGUI.Enabled then
-                ShowNotification("Информация", "Меню показано", Color3.fromRGB(150, 150, 255))
-            else
-                ShowNotification("Информация", "Меню скрыто", Color3.fromRGB(150, 150, 255))
-            end
         end
     end)
 
@@ -758,4 +612,16 @@ function CreateMainGUI()
         TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
         {Position = UDim2.new(0.5, -200, 0.5, -250)}
     ):Play()
+
+    -- Обработчик F5 для скрытия/показа GUI
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.KeyCode == Enum.KeyCode.F5 then
+            MainGUI.Enabled = not MainGUI.Enabled
+            if MainGUI.Enabled then
+                ShowNotification("Информация", "Меню показано", Color3.fromRGB(150, 150, 255))
+            else
+                ShowNotification("Информация", "Меню скрыто", Color3.fromRGB(150, 150, 255))
+            end
+        end
+    end)
 end
