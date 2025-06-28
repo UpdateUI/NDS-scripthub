@@ -1,187 +1,131 @@
---[[
-    FE Natural Survival Disaster GUI
-    Версия 1.2.1
-    Обновлено: 15.07.2023
-]]
+-- Ultra Simple Premium GUI v3.0
+-- by Clezuuu | Guaranteed Working
 
+-- Services
 local Players = game:GetService("Players")
-local Player = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local CoreGui = game:GetService("CoreGui")
+local Tween = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
 
--- Конфигурация
-local PASSWORD = "2025" 
-local DEBUG_MODE = true -- Режим отладки
-
--- Логирование
-local function DebugPrint(...)
-    if DEBUG_MODE then
-        print("[DEBUG]", ...)
-    end
+-- Safe player wait
+local Player = Players.LocalPlayer
+while not Player do
+    wait(1)
+    Player = Players.LocalPlayer
 end
 
--- Создаем GUI для пароля
-local PasswordScreenGui = Instance.new("ScreenGui")
-PasswordScreenGui.Name = "PasswordScreenGui"
-PasswordScreenGui.Parent = CoreGui
-PasswordScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-PasswordScreenGui.ResetOnSpawn = false
+-- Main GUI Setup
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "NDS_HUB_"..tostring(math.random(1000,9999))
+GUI.Parent = game.CoreGui
+GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Основной контейнер
-local PasswordFrame = Instance.new("Frame")
-PasswordFrame.Name = "PasswordFrame"
-PasswordFrame.Parent = PasswordScreenGui
-PasswordFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-PasswordFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
-PasswordFrame.Size = UDim2.new(0, 300, 0, 200)
-PasswordFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+-- Main Container
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = UDim2.new(0, 350, 0, 400)
+Main.Position = UDim2.new(0.5, -175, 0.5, -200)
+Main.AnchorPoint = Vector2.new(0.5,0.5)
+Main.BackgroundColor3 = Color3.fromRGB(20,20,25)
+Main.BackgroundTransparency = 0.1
+Main.Parent = GUI
 
--- Стилизация
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 12)
-UICorner.Parent = PasswordFrame
+-- Styling
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0,12)
+Corner.Parent = Main
 
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = Color3.fromRGB(80, 80, 90)
-UIStroke.Thickness = 2
-UIStroke.Parent = PasswordFrame
+local Stroke = Instance.new("UIStroke")
+Stroke.Color = Color3.fromRGB(80,80,100)
+Stroke.Thickness = 2
+Stroke.Parent = Main
 
--- Элементы интерфейса
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Text = "Введите пароль"
-TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.TextColor3 = Color3.new(1, 1, 1)
-TitleLabel.TextSize = 20
-TitleLabel.Parent = PasswordFrame
+-- Header
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1,0,0,50)
+Header.BackgroundColor3 = Color3.fromRGB(30,30,40)
+Header.Parent = Main
 
-local PasswordBox = Instance.new("TextBox")
-PasswordBox.PlaceholderText = "Пароль..."
-PasswordBox.Parent = PasswordFrame
-PasswordBox.Size = UDim2.new(0.8, 0, 0, 40)
-PasswordBox.Position = UDim2.new(0.1, 0, 0.4, 0)
+local Title = Instance.new("TextLabel")
+Title.Text = "DISASTER HUB"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+Title.TextColor3 = Color3.new(1,1,1)
+Title.Size = UDim2.new(1,0,1,0)
+Title.BackgroundTransparency = 1
+Title.Parent = Header
 
-local SubmitButton = Instance.new("TextButton")
-SubmitButton.Text = "Подтвердить"
-SubmitButton.Parent = PasswordFrame
-SubmitButton.Size = UDim2.new(0.5, 0, 0, 40)
-SubmitButton.Position = UDim2.new(0.25, 0, 0.7, 0)
+-- Buttons Container
+local Buttons = Instance.new("ScrollingFrame")
+Buttons.Size = UDim2.new(1,-20,1,-70)
+Buttons.Position = UDim2.new(0,10,0,60)
+Buttons.BackgroundTransparency = 1
+Buttons.ScrollBarThickness = 4
+Buttons.Parent = Main
 
--- Анимации
-local function AnimateButton(button, isHovering)
-    local targetSize = isHovering and UDim2.new(0.55, 0, 0, 42) or UDim2.new(0.5, 0, 0, 40)
-    TweenService:Create(button, TweenInfo.new(0.2), {Size = targetSize}):Play()
-end
-
--- Проверка пароля
-local function CheckPassword()
-    DebugPrint("Проверка пароля...")
+-- Button Template
+function CreateBtn(name,text,ypos,action)
+    local Btn = Instance.new("TextButton")
+    Btn.Name = name
+    Btn.Text = text
+    Btn.Size = UDim2.new(1,0,0,40)
+    Btn.Position = UDim2.new(0,0,0,ypos)
+    Btn.Font = Enum.Font.Gotham
+    Btn.TextSize = 16
+    Btn.TextColor3 = Color3.new(1,1,1)
+    Btn.BackgroundColor3 = Color3.fromRGB(40,40,50)
+    Btn.Parent = Buttons
     
-    if PasswordBox.Text == PASSWORD then
-        DebugPrint("Пароль верный!")
-        
-        -- Анимация успеха
-        TweenService:Create(PasswordFrame, TweenInfo.new(0.5), {
-            BackgroundColor3 = Color3.fromRGB(40, 80, 40),
-            Size = UDim2.new(0, 300, 0, 0)
-        }):Play()
-        
-        task.wait(0.5)
-        PasswordScreenGui:Destroy()
-        CreateMainGUI()
-    else
-        DebugPrint("Неверный пароль!")
-        -- Анимация ошибки
-        TweenService:Create(PasswordFrame, TweenInfo.new(0.2), {
-            BackgroundColor3 = Color3.fromRGB(80, 40, 40)
-        }):Play()
-        task.wait(0.5)
-        TweenService:Create(PasswordFrame, TweenInfo.new(0.5), {
-            BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-        }):Play()
-    end
-end
-
--- Создание основного меню
-function CreateMainGUI()
-    DebugPrint("Создание основного меню...")
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0,8)
+    BtnCorner.Parent = Btn
     
-    local MainScreenGui = Instance.new("ScreenGui")
-    MainScreenGui.Name = "MainScreenGui"
-    MainScreenGui.Parent = CoreGui
-    MainScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-    -- Контейнер меню
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = MainScreenGui
-    MainFrame.Size = UDim2.new(0, 400, 0, 500)
-    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
-    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    MainFrame.Active = true
-    MainFrame.Draggable = true
-
-    -- Кнопки скриптов
-    local function CreateScriptButton(name, text, position, scriptUrl)
-        local button = Instance.new("TextButton")
-        button.Name = name
-        button.Text = text
-        button.Parent = MainFrame
-        button.Size = UDim2.new(0.9, 0, 0, 40)
-        button.Position = position
-        
-        button.MouseButton1Click:Connect(function()
-            DebugPrint("Запуск скрипта:", text)
-            pcall(function()
-                loadstring(game:HttpGet(scriptUrl))()
-            end)
-        end)
-        
-        return button
-    end
-
-    -- Список скриптов
-    local scripts = {
-        {"InfinityYield", "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"},
-        {"SuperRingV6", "https://raw.githubusercontent.com/chesslovers69/Super-ring-parts-v6/main/Bylukaslol"},
-        {"BlackHole", "https://pastebin.com/raw/wBsi24w3"}
-    }
-
-    -- Создаем кнопки
-    for i, script in ipairs(scripts) do
-        CreateScriptButton(
-            script[1].."Button",
-            i..") "..script[1],
-            UDim2.new(0.05, 0, 0.1 + (i-1)*0.12, 0),
-            script[2]
-        )
-    end
-
-    -- Анимация появления
-    MainFrame.Size = UDim2.new(0, 0, 0, 0)
-    TweenService:Create(MainFrame, TweenInfo.new(0.5), {
-        Size = UDim2.new(0, 400, 0, 500)
-    }:Play()
+    -- Hover Effects
+    Btn.MouseEnter:Connect(function()
+        Tween:Create(Btn,TweenInfo.new(0.1),{
+            BackgroundColor3 = Color3.fromRGB(60,60,70)
+        }:Play()
+    end)
+    
+    Btn.MouseLeave:Connect(function()
+        Tween:Create(Btn,TweenInfo.new(0.1),{
+            BackgroundColor3 = Color3.fromRGB(40,40,50)
+        }:Play()
+    end)
+    
+    -- Click Action
+    Btn.MouseButton1Click:Connect(function()
+        pcall(action) -- Safe execute
+    end)
 end
 
--- Обработчики событий
-SubmitButton.MouseButton1Click:Connect(CheckPassword)
-PasswordBox.FocusLost:Connect(function(enterPressed)
-    if enterPressed then CheckPassword() end
+-- Script Buttons
+CreateBtn("IY","1) Infinity Yield",0,function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
 end)
 
-SubmitButton.MouseEnter:Connect(function()
-    AnimateButton(SubmitButton, true)
+CreateBtn("BH","2) Black Hole",50,function()
+    loadstring(game:HttpGet("https://pastebin.com/raw/wBsi24w3"))()
 end)
 
-SubmitButton.MouseLeave:Connect(function()
-    AnimateButton(SubmitButton, false)
+CreateBtn("Grav","3) Gravity",100,function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/hm5650/Gravity-inverter/main/GI",true))()
 end)
 
--- Первоначальная настройка
-PasswordFrame.Size = UDim2.new(0, 0, 0, 0)
-TweenService:Create(PasswordFrame, TweenInfo.new(0.5), {
-    Size = UDim2.new(0, 300, 0, 200)
+CreateBtn("Close","X Close Menu",250,function()
+    GUI:Destroy()
+end)
+
+-- Appear Animation
+Main.Size = UDim2.new(0,0,0,0)
+Tween:Create(Main,TweenInfo.new(0.5,Enum.EasingStyle.Back),{
+    Size = UDim2.new(0,350,0,400)
 }:Play()
 
-DebugPrint("GUI инициализирован!")
+-- Toggle Key (F5)
+UIS.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.F5 then
+        Main.Visible = not Main.Visible
+    end
+end)
+
+print("NDS Hub loaded successfully!")
