@@ -9,6 +9,14 @@ local RunService = game:GetService("RunService")
 local PASSWORD = "2025"
 local currentDate = os.date("%d/%m/%Y")
 
+-- Функция для создания закругленных углов
+local function createCorner(parent, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(radius, 0)
+    corner.Parent = parent
+    return corner
+end
+
 -- Создаем кастомные уведомления
 local function ShowNotification(title, text, color)
     local NotificationGUI = Instance.new("ScreenGui")
@@ -25,6 +33,9 @@ local function ShowNotification(title, text, color)
     NotificationFrame.Position = UDim2.new(1, 10, 0.8, 0)
     NotificationFrame.Size = UDim2.new(0, 300, 0, 100)
     NotificationFrame.AnchorPoint = Vector2.new(1, 0)
+    
+    -- Закругление углов
+    createCorner(NotificationFrame, 0.1)
     
     local DropShadow = Instance.new("ImageLabel")
     DropShadow.Name = "DropShadow"
@@ -103,6 +114,9 @@ PasswordFrame.Size = UDim2.new(0, 300, 0, 200)
 PasswordFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 PasswordFrame.ClipsDescendants = true
 
+-- Закругление углов
+createCorner(PasswordFrame, 0.1)
+
 -- Тень
 local DropShadow = Instance.new("ImageLabel")
 DropShadow.Name = "DropShadow"
@@ -146,6 +160,9 @@ PasswordBox.TextWrapped = true
 PasswordBox.ClearTextOnFocus = false
 PasswordBox.ShowNativeInput = false
 
+-- Закругление углов для поля ввода
+createCorner(PasswordBox, 0.1)
+
 -- Кнопка подтверждения
 local SubmitButton = Instance.new("TextButton")
 SubmitButton.Name = "SubmitButton"
@@ -158,6 +175,9 @@ SubmitButton.Font = Enum.Font.GothamBold
 SubmitButton.Text = "Подтвердить"
 SubmitButton.TextColor3 = Color3.fromRGB(50, 50, 50)
 SubmitButton.TextSize = 16
+
+-- Закругление углов для кнопки
+createCorner(SubmitButton, 0.1)
 
 -- Анимация при наведении на кнопку
 SubmitButton.MouseEnter:Connect(function()
@@ -265,6 +285,9 @@ function CreateMainGUI()
     MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     MainFrame.ClipsDescendants = true
 
+    -- Закругление углов
+    createCorner(MainFrame, 0.1)
+
     -- Тень
     local DropShadow = Instance.new("ImageLabel")
     DropShadow.Name = "DropShadow"
@@ -323,6 +346,9 @@ function CreateMainGUI()
     TrollButton.TextColor3 = Color3.fromRGB(50, 50, 50)
     TrollButton.TextSize = 16
 
+    -- Закругление кнопок категорий
+    createCorner(TrollButton, 0.1)
+
     local TeleportButton = Instance.new("TextButton")
     TeleportButton.Name = "TeleportButton"
     TeleportButton.Parent = CategoryFrame
@@ -334,6 +360,9 @@ function CreateMainGUI()
     TeleportButton.Text = "Teleport"
     TeleportButton.TextColor3 = Color3.fromRGB(50, 50, 50)
     TeleportButton.TextSize = 16
+
+    -- Закругление кнопок категорий
+    createCorner(TeleportButton, 0.1)
 
     -- Контейнер для контента
     local ContentFrame = Instance.new("Frame")
@@ -693,6 +722,9 @@ function CreateMainGUI()
             button.TextSize = 16
             button.AutoButtonColor = false
 
+            -- Закругление кнопок
+            createCorner(button, 0.1)
+
             -- Анимация при наведении
             button.MouseEnter:Connect(function()
                 TweenService:Create(
@@ -732,6 +764,9 @@ function CreateMainGUI()
                 subButton.TextSize = 14
                 subButton.Visible = false
                 subButton.AutoButtonColor = false
+
+                -- Закругление подкнопок
+                createCorner(subButton, 0.1)
 
                 -- Анимация подкнопки
                 subButton.MouseEnter:Connect(function()
@@ -816,6 +851,9 @@ function CreateMainGUI()
             button.TextSize = 16
             button.AutoButtonColor = false
 
+            -- Закругление кнопок
+            createCorner(button, 0.1)
+
             -- Анимация при наведении
             button.MouseEnter:Connect(function()
                 TweenService:Create(
@@ -871,6 +909,9 @@ function CreateMainGUI()
         massTeleportToggle.TextColor3 = Color3.fromRGB(50, 50, 50)
         massTeleportToggle.TextSize = 16
         massTeleportToggle.AutoButtonColor = false
+
+        -- Закругление кнопки
+        createCorner(massTeleportToggle, 0.1)
 
         -- Анимация при наведении
         massTeleportToggle.MouseEnter:Connect(function()
@@ -952,6 +993,9 @@ function CreateMainGUI()
     UserFrame.Position = UDim2.new(0.05, 0, 0.85, 0)
     UserFrame.Size = UDim2.new(0.9, 0, 0.1, 0)
 
+    -- Закругление фрейма пользователя
+    createCorner(UserFrame, 0.1)
+
     -- Аватар пользователя
     local Avatar = Instance.new("ImageLabel")
     Avatar.Name = "Avatar"
@@ -1004,6 +1048,9 @@ function CreateMainGUI()
     CloseButton.Text = "Закрыть"
     CloseButton.TextColor3 = Color3.fromRGB(50, 50, 50)
     CloseButton.TextSize = 16
+
+    -- Закругление кнопки закрытия
+    createCorner(CloseButton, 0.1)
 
     -- Анимация кнопки закрытия
     CloseButton.MouseEnter:Connect(function()
