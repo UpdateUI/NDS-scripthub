@@ -9,15 +9,129 @@ local RunService = game:GetService("RunService")
 local PASSWORD = "2025"
 local currentDate = os.date("%d/%m/%Y")
 
--- Функция для создания закругленных углов
-local function createCorner(parent, radius)
+-- Китайская цветовая палитра (красный, золотой, белый)
+local ColorPalette = {
+    Background = Color3.fromRGB(250, 245, 240),  -- Кремовый фон
+    Card = Color3.fromRGB(255, 255, 255),       -- Белые карточки
+    Primary = Color3.fromRGB(200, 16, 46),      -- Китайский красный
+    PrimaryLight = Color3.fromRGB(220, 50, 80),
+    Secondary = Color3.fromRGB(212, 175, 55),   -- Золотой
+    Text = Color3.fromRGB(60, 60, 60),          -- Темный текст
+    TextLight = Color3.fromRGB(120, 120, 120),
+    Success = Color3.fromRGB(0, 180, 60),       -- Зеленый успех
+    Error = Color3.fromRGB(200, 50, 50)         -- Красный ошибка
+}
+
+-- Специальные эффекты для китайского стиля
+local function createChineseBorder(parent)
+    local border = Instance.new("Frame")
+    border.Name = "ChineseBorder"
+    border.Parent = parent
+    border.BackgroundColor3 = ColorPalette.Secondary
+    border.BorderSizePixel = 0
+    border.Size = UDim2.new(1, 6, 1, 6)
+    border.Position = UDim2.new(0, -3, 0, -3)
+    border.ZIndex = -1
+    
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(radius, 0)
-    corner.Parent = parent
-    return corner
+    corner.CornerRadius = UDim.new(0.15, 0)
+    corner.Parent = border
+    
+    return border
 end
 
--- Создаем кастомные уведомления
+local function createRippleEffect(button)
+    local ripple = Instance.new("Frame")
+    ripple.Name = "RippleEffect"
+    ripple.Parent = button
+    ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ripple.BackgroundTransparency = 0.8
+    ripple.Size = UDim2.new(0, 0, 0, 0)
+    ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+    ripple.ZIndex = 2
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = ripple
+    
+    return ripple
+end
+
+-- Функция для создания кнопки в китайском стиле
+local function createChineseButton(parent, name, size, position)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Parent = parent
+    button.BackgroundColor3 = ColorPalette.Primary
+    button.BorderSizePixel = 0
+    button.Size = size
+    button.Position = position
+    button.Font = Enum.Font.GothamBold
+    button.Text = name
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextSize = 16
+    button.AutoButtonColor = false
+    button.ClipsDescendants = true
+
+    -- Закругление
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.1, 0)
+    corner.Parent = button
+
+    -- Китайская граница
+    createChineseBorder(button)
+
+    -- Эффект при наведении
+    button.MouseEnter:Connect(function()
+        TweenService:Create(
+            button,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {BackgroundColor3 = ColorPalette.PrimaryLight}
+        ):Play()
+    end)
+
+    button.MouseLeave:Connect(function()
+        TweenService:Create(
+            button,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {BackgroundColor3 = ColorPalette.Primary}
+        ):Play()
+    end)
+
+    -- Эффект нажатия с волной
+    button.MouseButton1Down:Connect(function()
+        local ripple = createRippleEffect(button)
+        
+        TweenService:Create(
+            ripple,
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Size = UDim2.new(2, 0, 2, 0), BackgroundTransparency = 1}
+        ):Play()
+        
+        TweenService:Create(
+            button,
+            TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Size = size - UDim2.new(0.02, 0, 0.02, 0)}
+        ):Play()
+        
+        delay(0.5, function()
+            ripple:Destroy()
+        end)
+    end)
+
+    button.MouseButton1Up:Connect(function()
+        TweenService:Create(
+            button,
+            TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Size = size}
+        ):Play()
+    end)
+
+    return button
+end
+
+-- Создаем кастомные уведомления в китайском стиле
 local function ShowNotification(title, text, color)
     local NotificationGUI = Instance.new("ScreenGui")
     NotificationGUI.Name = "NotificationGUI"
@@ -28,27 +142,15 @@ local function ShowNotification(title, text, color)
     local NotificationFrame = Instance.new("Frame")
     NotificationFrame.Name = "NotificationFrame"
     NotificationFrame.Parent = NotificationGUI
-    NotificationFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    NotificationFrame.BackgroundColor3 = ColorPalette.Card
     NotificationFrame.BorderSizePixel = 0
     NotificationFrame.Position = UDim2.new(1, 10, 0.8, 0)
     NotificationFrame.Size = UDim2.new(0, 300, 0, 100)
     NotificationFrame.AnchorPoint = Vector2.new(1, 0)
     
-    -- Закругление углов
-    createCorner(NotificationFrame, 0.1)
-    
-    local DropShadow = Instance.new("ImageLabel")
-    DropShadow.Name = "DropShadow"
-    DropShadow.Parent = NotificationFrame
-    DropShadow.BackgroundTransparency = 1
-    DropShadow.BorderSizePixel = 0
-    DropShadow.Size = UDim2.new(1, 0, 1, 0)
-    DropShadow.ZIndex = -1
-    DropShadow.Image = "rbxassetid://1316045217"
-    DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    DropShadow.ImageTransparency = 0.8
-    DropShadow.ScaleType = Enum.ScaleType.Slice
-    DropShadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    -- Китайский стиль
+    createChineseBorder(NotificationFrame)
+    createCorner(NotificationFrame, 0.05)
     
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "TitleLabel"
@@ -58,7 +160,7 @@ local function ShowNotification(title, text, color)
     TitleLabel.Size = UDim2.new(1, -30, 0, 20)
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.Text = title
-    TitleLabel.TextColor3 = color or Color3.fromRGB(50, 50, 50)
+    TitleLabel.TextColor3 = color or ColorPalette.Primary
     TitleLabel.TextSize = 16
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     
@@ -70,28 +172,30 @@ local function ShowNotification(title, text, color)
     TextLabel.Size = UDim2.new(1, -30, 0, 50)
     TextLabel.Font = Enum.Font.Gotham
     TextLabel.Text = text
-    TextLabel.TextColor3 = Color3.fromRGB(100, 100, 100)
+    TextLabel.TextColor3 = ColorPalette.TextLight
     TextLabel.TextSize = 14
     TextLabel.TextWrapped = true
     TextLabel.TextXAlignment = Enum.TextXAlignment.Left
     TextLabel.TextYAlignment = Enum.TextYAlignment.Top
     
-    -- Анимация появления
+    -- Анимация появления с эффектом скольжения
     NotificationFrame.Position = UDim2.new(1, 10, 0.8, 0)
-    TweenService:Create(
+    local slideTween = TweenService:Create(
         NotificationFrame,
-        TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
         {Position = UDim2.new(1, -10, 0.8, 0)}
-    ):Play()
+    )
+    slideTween:Play()
     
     -- Анимация исчезновения через 5 секунд
     delay(5, function()
+        slideTween:Destroy()
         TweenService:Create(
             NotificationFrame,
-            TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In),
             {Position = UDim2.new(1, 10, 0.8, 0)}
         ):Play()
-        delay(0.3, function()
+        delay(0.5, function()
             NotificationGUI:Destroy()
         end)
     end)
@@ -103,35 +207,22 @@ PasswordGUI.Name = "PasswordGUI"
 PasswordGUI.Parent = CoreGui
 PasswordGUI.ResetOnSpawn = false
 
--- Фрейм для пароля
+-- Фрейм для пароля с китайским стилем
 local PasswordFrame = Instance.new("Frame")
 PasswordFrame.Name = "PasswordFrame"
 PasswordFrame.Parent = PasswordGUI
-PasswordFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+PasswordFrame.BackgroundColor3 = ColorPalette.Card
 PasswordFrame.BorderSizePixel = 0
 PasswordFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
 PasswordFrame.Size = UDim2.new(0, 300, 0, 200)
 PasswordFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 PasswordFrame.ClipsDescendants = true
 
--- Закругление углов
-createCorner(PasswordFrame, 0.1)
+-- Китайский стиль
+createChineseBorder(PasswordFrame)
+createCorner(PasswordFrame, 0.05)
 
--- Тень
-local DropShadow = Instance.new("ImageLabel")
-DropShadow.Name = "DropShadow"
-DropShadow.Parent = PasswordFrame
-DropShadow.BackgroundTransparency = 1
-DropShadow.BorderSizePixel = 0
-DropShadow.Size = UDim2.new(1, 0, 1, 0)
-DropShadow.ZIndex = -1
-DropShadow.Image = "rbxassetid://1316045217"
-DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-DropShadow.ImageTransparency = 0.8
-DropShadow.ScaleType = Enum.ScaleType.Slice
-DropShadow.SliceCenter = Rect.new(10, 10, 118, 118)
-
--- Текст заголовка
+-- Текст заголовка с золотым оттенком
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Name = "TitleLabel"
 TitleLabel.Parent = PasswordFrame
@@ -140,68 +231,64 @@ TitleLabel.Position = UDim2.new(0, 0, 0.1, 0)
 TitleLabel.Size = UDim2.new(1, 0, 0.2, 0)
 TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.Text = "Введите пароль"
-TitleLabel.TextColor3 = Color3.fromRGB(50, 50, 50)
+TitleLabel.TextColor3 = ColorPalette.Secondary
 TitleLabel.TextSize = 20
 
--- Поле ввода пароля
+-- Поле ввода пароля с анимацией
 local PasswordBox = Instance.new("TextBox")
 PasswordBox.Name = "PasswordBox"
 PasswordBox.Parent = PasswordFrame
-PasswordBox.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
+PasswordBox.BackgroundColor3 = ColorPalette.Background
 PasswordBox.BorderSizePixel = 0
 PasswordBox.Position = UDim2.new(0.1, 0, 0.4, 0)
 PasswordBox.Size = UDim2.new(0.8, 0, 0.15, 0)
 PasswordBox.Font = Enum.Font.Gotham
 PasswordBox.PlaceholderText = "Пароль"
 PasswordBox.Text = ""
-PasswordBox.TextColor3 = Color3.fromRGB(50, 50, 50)
+PasswordBox.TextColor3 = ColorPalette.Text
 PasswordBox.TextSize = 16
 PasswordBox.TextWrapped = true
 PasswordBox.ClearTextOnFocus = false
 PasswordBox.ShowNativeInput = false
 
--- Закругление углов для поля ввода
-createCorner(PasswordBox, 0.1)
-
--- Кнопка подтверждения
-local SubmitButton = Instance.new("TextButton")
-SubmitButton.Name = "SubmitButton"
-SubmitButton.Parent = PasswordFrame
-SubmitButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-SubmitButton.BorderSizePixel = 0
-SubmitButton.Position = UDim2.new(0.25, 0, 0.7, 0)
-SubmitButton.Size = UDim2.new(0.5, 0, 0.15, 0)
-SubmitButton.Font = Enum.Font.GothamBold
-SubmitButton.Text = "Подтвердить"
-SubmitButton.TextColor3 = Color3.fromRGB(50, 50, 50)
-SubmitButton.TextSize = 16
-
--- Закругление углов для кнопки
-createCorner(SubmitButton, 0.1)
-
--- Анимация при наведении на кнопку
-SubmitButton.MouseEnter:Connect(function()
+-- Стиль фокуса с анимацией
+PasswordBox.Focused:Connect(function()
     TweenService:Create(
-        SubmitButton,
-        TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-        {BackgroundColor3 = Color3.fromRGB(220, 220, 220)}
+        PasswordBox,
+        TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {BackgroundColor3 = Color3.fromRGB(245, 245, 245), Size = UDim2.new(0.82, 0, 0.17, 0)}
     ):Play()
 end)
 
-SubmitButton.MouseLeave:Connect(function()
+PasswordBox.FocusLost:Connect(function()
     TweenService:Create(
-        SubmitButton,
-        TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-        {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}
+        PasswordBox,
+        TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {BackgroundColor3 = ColorPalette.Background, Size = UDim2.new(0.8, 0, 0.15, 0)}
     ):Play()
 end)
 
--- Функция проверки пароля
+-- Кнопка подтверждения в китайском стиле
+local SubmitButton = createChineseButton(PasswordFrame, "Подтвердить", UDim2.new(0.5, 0, 0.15, 0), UDim2.new(0.25, 0, 0.7, 0))
+
+-- Функция проверки пароля с анимацией
 local function CheckPassword()
     local enteredPassword = PasswordBox.Text
     
     if enteredPassword == PASSWORD then
-        ShowNotification("Успех", "Пароль верный!", Color3.fromRGB(0, 200, 0))
+        ShowNotification("Успех", "Пароль верный!", ColorPalette.Success)
+        
+        -- Анимация успеха
+        local particles = Instance.new("ParticleEmitter")
+        particles.Parent = PasswordFrame
+        particles.LightEmission = 0.8
+        particles.Texture = "rbxassetid://296874871"
+        particles.Color = ColorSequence.new(ColorPalette.Success)
+        particles.Size = NumberSequence.new(0.5)
+        particles.Lifetime = NumberRange.new(1)
+        particles.Speed = NumberRange.new(5)
+        particles.EmissionDirection = Enum.NormalId.Top
+        particles.Rate = 50
         
         TweenService:Create(
             PasswordFrame,
@@ -210,6 +297,7 @@ local function CheckPassword()
         ):Play()
         
         delay(1, function()
+            particles.Enabled = false
             TweenService:Create(
                 PasswordFrame,
                 TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -228,9 +316,9 @@ local function CheckPassword()
             end)
         end)
     else
-        ShowNotification("Ошибка", "Неверный пароль!", Color3.fromRGB(255, 50, 50))
+        ShowNotification("Ошибка", "Неверный пароль!", ColorPalette.Error)
         
-        -- Тряска
+        -- Анимация ошибки (тряска)
         local shakeX = 5
         for i = 1, 5 do
             PasswordFrame.Position = UDim2.new(0.5, -150 + shakeX, 0.5, -100)
@@ -239,19 +327,21 @@ local function CheckPassword()
         end
         PasswordFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
         
-        TweenService:Create(
-            PasswordFrame,
-            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {BackgroundColor3 = Color3.fromRGB(255, 220, 220)}
-        ):Play()
-        
-        delay(1, function()
+        -- Красное мерцание
+        for i = 1, 3 do
             TweenService:Create(
                 PasswordFrame,
-                TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}
+                TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+                {BackgroundColor3 = Color3.fromRGB(255, 220, 220)}
             ):Play()
-        end)
+            wait(0.1)
+            TweenService:Create(
+                PasswordFrame,
+                TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+                {BackgroundColor3 = ColorPalette.Card}
+            ):Play()
+            wait(0.1)
+        end
         
         PasswordBox.Text = ""
     end
@@ -266,7 +356,7 @@ end)
 
 -- Создание основного GUI после ввода пароля
 function CreateMainGUI()
-    ShowNotification("Добро пожаловать", "Меню успешно загружено", Color3.fromRGB(0, 150, 255))
+    ShowNotification("Добро пожаловать", "Меню успешно загружено", ColorPalette.Primary)
     
     local MainGUI = Instance.new("ScreenGui")
     MainGUI.Name = "MainGUI"
@@ -274,35 +364,22 @@ function CreateMainGUI()
     MainGUI.ResetOnSpawn = false
     MainGUI.Enabled = true
 
-    -- Основной фрейм
+    -- Основной фрейм с китайским стилем
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = MainGUI
-    MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    MainFrame.BackgroundColor3 = ColorPalette.Card
     MainFrame.BorderSizePixel = 0
     MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
     MainFrame.Size = UDim2.new(0, 400, 0, 500)
     MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     MainFrame.ClipsDescendants = true
 
-    -- Закругление углов
-    createCorner(MainFrame, 0.1)
+    -- Китайский стиль
+    createChineseBorder(MainFrame)
+    createCorner(MainFrame, 0.05)
 
-    -- Тень
-    local DropShadow = Instance.new("ImageLabel")
-    DropShadow.Name = "DropShadow"
-    DropShadow.Parent = MainFrame
-    DropShadow.BackgroundTransparency = 1
-    DropShadow.BorderSizePixel = 0
-    DropShadow.Size = UDim2.new(1, 0, 1, 0)
-    DropShadow.ZIndex = -1
-    DropShadow.Image = "rbxassetid://1316045217"
-    DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    DropShadow.ImageTransparency = 0.8
-    DropShadow.ScaleType = Enum.ScaleType.Slice
-    DropShadow.SliceCenter = Rect.new(10, 10, 118, 118)
-
-    -- Заголовок
+    -- Заголовок с золотым текстом
     local MainTitle = Instance.new("TextLabel")
     MainTitle.Name = "MainTitle"
     MainTitle.Parent = MainFrame
@@ -311,7 +388,7 @@ function CreateMainGUI()
     MainTitle.Size = UDim2.new(1, 0, 0.1, 0)
     MainTitle.Font = Enum.Font.GothamBold
     MainTitle.Text = "FE Natural Survival Disaster"
-    MainTitle.TextColor3 = Color3.fromRGB(50, 50, 50)
+    MainTitle.TextColor3 = ColorPalette.Secondary
     MainTitle.TextSize = 20
 
     -- Подзаголовок
@@ -322,8 +399,8 @@ function CreateMainGUI()
     SubTitle.Position = UDim2.new(0, 0, 0.1, 0)
     SubTitle.Size = UDim2.new(1, 0, 0.05, 0)
     SubTitle.Font = Enum.Font.Gotham
-    SubTitle.Text = "made by Clezuuu"
-    SubTitle.TextColor3 = Color3.fromRGB(150, 150, 150)
+    SubTitle.Text = "made by Clezuuu | 中国风格"
+    SubTitle.TextColor3 = ColorPalette.TextLight
     SubTitle.TextSize = 14
 
     -- Кнопки категорий
@@ -334,35 +411,13 @@ function CreateMainGUI()
     CategoryFrame.Position = UDim2.new(0, 0, 0.15, 0)
     CategoryFrame.Size = UDim2.new(1, 0, 0.05, 0)
 
-    local TrollButton = Instance.new("TextButton")
-    TrollButton.Name = "TrollButton"
-    TrollButton.Parent = CategoryFrame
-    TrollButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-    TrollButton.BorderSizePixel = 0
-    TrollButton.Position = UDim2.new(0.1, 0, 0, 0)
-    TrollButton.Size = UDim2.new(0.35, 0, 1, 0)
-    TrollButton.Font = Enum.Font.GothamBold
-    TrollButton.Text = "Troll"
-    TrollButton.TextColor3 = Color3.fromRGB(50, 50, 50)
-    TrollButton.TextSize = 16
+    -- Кнопка Troll в китайском стиле
+    local TrollButton = createChineseButton(CategoryFrame, "Troll", UDim2.new(0.35, 0, 1, 0), UDim2.new(0.1, 0, 0, 0))
 
-    -- Закругление кнопок категорий
-    createCorner(TrollButton, 0.1)
-
-    local TeleportButton = Instance.new("TextButton")
-    TeleportButton.Name = "TeleportButton"
-    TeleportButton.Parent = CategoryFrame
-    TeleportButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-    TeleportButton.BorderSizePixel = 0
-    TeleportButton.Position = UDim2.new(0.55, 0, 0, 0)
-    TeleportButton.Size = UDim2.new(0.35, 0, 1, 0)
-    TeleportButton.Font = Enum.Font.GothamBold
-    TeleportButton.Text = "Teleport"
-    TeleportButton.TextColor3 = Color3.fromRGB(50, 50, 50)
-    TeleportButton.TextSize = 16
-
-    -- Закругление кнопок категорий
-    createCorner(TeleportButton, 0.1)
+    -- Кнопка Teleport в китайском стиле
+    local TeleportButton = createChineseButton(CategoryFrame, "Teleport", UDim2.new(0.35, 0, 1, 0), UDim2.new(0.55, 0, 0, 0))
+    TeleportButton.BackgroundColor3 = ColorPalette.Background
+    TeleportButton.TextColor3 = ColorPalette.Text
 
     -- Контейнер для контента
     local ContentFrame = Instance.new("Frame")
@@ -386,319 +441,7 @@ function CreateMainGUI()
             {name = "Super ring Parts V6", script = "loadstring(game:HttpGet('https://raw.githubusercontent.com/chesslovers69/Super-ring-parts-v6/refs/heads/main/Bylukaslol'))()", 
              subButton = {name = "Super ring Parts V4", script = "loadstring(game:HttpGet('https://raw.githubusercontent.com/Lukashub-coder/super-ring/refs/heads/main/Super%20ring!!'))()"}},
             {name = "Black Hole Script", script = "loadstring(game:HttpGet('https://pastebin.com/raw/wBsi24w3'))()"},
-            {name = "Fling all", script = [[
-                local scriptActive = true
-                local Targets = {"All"}
-                local Welcome = false
-
-                local Players = game:GetService("Players")
-                local Player = Players.LocalPlayer
-                local UserInputService = game:GetService("UserInputService")
-                local GuiService = game:GetService("GuiService")
-
-                local AllBool = false
-                getgenv().OldPos = nil
-                getgenv().FPDH = workspace.FallenPartsDestroyHeight
-
-                local Message = function(_Title, _Text, Time)
-                    game:GetService("StarterGui"):SetCore("SendNotification", {
-                        Title = _Title, 
-                        Text = _Text, 
-                        Duration = Time
-                    })
-                end
-
-                local GetPlayer = function(Name)
-                    Name = Name:lower()
-                    if Name == "all" or Name == "others" then
-                        AllBool = true
-                        return
-                    elseif Name == "random" then
-                        local GetPlayers = Players:GetPlayers()
-                        if table.find(GetPlayers,Player) then table.remove(GetPlayers,table.find(GetPlayers,Player)) end
-                        return GetPlayers[math.random(#GetPlayers)]
-                    elseif Name ~= "random" and Name ~= "all" and Name ~= "others" then
-                        for _,x in next, Players:GetPlayers() do
-                            if x ~= Player then
-                                if x.Name:lower():match("^"..Name) then
-                                    return x;
-                                elseif x.DisplayName:lower():match("^"..Name) then
-                                    return x;
-                                end
-                            end
-                        end
-                    else
-                        return
-                    end
-                end
-
-                local SkidFling = function(TargetPlayer)
-                    if not scriptActive then return end
-                    
-                    local Character = Player.Character
-                    local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
-                    local RootPart = Humanoid and Humanoid.RootPart
-
-                    local TCharacter = TargetPlayer.Character
-                    local THumanoid
-                    local TRootPart
-                    local THead
-                    local Accessory
-                    local Handle
-
-                    if TCharacter:FindFirstChildOfClass("Humanoid") then
-                        THumanoid = TCharacter:FindFirstChildOfClass("Humanoid")
-                    end
-                    if THumanoid and THumanoid.RootPart then
-                        TRootPart = THumanoid.RootPart
-                    end
-                    if TCharacter:FindFirstChild("Head") then
-                        THead = TCharacter.Head
-                    end
-                    if TCharacter:FindFirstChildOfClass("Accessory") then
-                        Accessory = TCharacter:FindFirstChildOfClass("Accessory")
-                    end
-                    if Accessory and Accessory:FindFirstChild("Handle") then
-                        Handle = Accessory.Handle
-                    end
-
-                    if Character and Humanoid and RootPart then
-                        if RootPart.Velocity.Magnitude < 50 then
-                            getgenv().OldPos = RootPart.CFrame
-                        end
-                        if THumanoid and THumanoid.Sit and not AllBool then
-                            return Message("Error", "Target is sitting", 5)
-                        end
-                        if THead then
-                            workspace.CurrentCamera.CameraSubject = THead
-                        elseif not THead and Handle then
-                            workspace.CurrentCamera.CameraSubject = Handle
-                        elseif THumanoid and TRootPart then
-                            workspace.CurrentCamera.CameraSubject = THumanoid
-                        end
-                        if not TCharacter:FindFirstChildWhichIsA("BasePart") then
-                            return
-                        end
-
-                        local FPos = function(BasePart, Pos, Ang)
-                            RootPart.CFrame = CFrame.new(BasePart.Position) * Pos * Ang
-                            Character:SetPrimaryPartCFrame(CFrame.new(BasePart.Position) * Pos * Ang)
-                            RootPart.Velocity = Vector3.new(9e7, 9e7 * 10, 9e7)
-                            RootPart.RotVelocity = Vector3.new(9e8, 9e8, 9e8)
-                        end
-
-                        local SFBasePart = function(BasePart)
-                            local TimeToWait = 2
-                            local Time = tick()
-                            local Angle = 0
-
-                            repeat
-                                if RootPart and THumanoid and scriptActive then
-                                    if BasePart.Velocity.Magnitude < 50 then
-                                        Angle = Angle + 100
-
-                                        FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle),0 ,0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(2.25, 1.5, -2.25) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(-2.25, -1.5, 2.25) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection,CFrame.Angles(math.rad(Angle), 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection,CFrame.Angles(math.rad(Angle), 0, 0))
-                                        task.wait()
-                                    else
-                                        FPos(BasePart, CFrame.new(0, 1.5, THumanoid.WalkSpeed), CFrame.Angles(math.rad(90), 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, -1.5, -THumanoid.WalkSpeed), CFrame.Angles(0, 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, 1.5, THumanoid.WalkSpeed), CFrame.Angles(math.rad(90), 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, 1.5, TRootPart.Velocity.Magnitude / 1.25), CFrame.Angles(math.rad(90), 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, -1.5, -TRootPart.Velocity.Magnitude / 1.25), CFrame.Angles(0, 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, 1.5, TRootPart.Velocity.Magnitude / 1.25), CFrame.Angles(math.rad(90), 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(math.rad(90), 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(0, 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, -1.5 ,0), CFrame.Angles(math.rad(-90), 0, 0))
-                                        task.wait()
-
-                                        FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(0, 0, 0))
-                                        task.wait()
-                                    end
-                                else
-                                    break
-                                end
-                            until not scriptActive or BasePart.Velocity.Magnitude > 500 or BasePart.Parent ~= TargetPlayer.Character or TargetPlayer.Parent ~= Players or not TargetPlayer.Character == TCharacter or THumanoid.Sit or Humanoid.Health <= 0 or tick() > Time + TimeToWait
-                        end
-
-                        workspace.FallenPartsDestroyHeight = 0/0
-
-                        local BV = Instance.new("BodyVelocity")
-                        BV.Name = "EpixVel"
-                        BV.Parent = RootPart
-                        BV.Velocity = Vector3.new(9e8, 9e8, 9e8)
-                        BV.MaxForce = Vector3.new(1/0, 1/0, 1/0)
-
-                        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-
-                        if TRootPart and THead then
-                            if (TRootPart.CFrame.p - THead.CFrame.p).Magnitude > 5 then
-                                SFBasePart(THead)
-                            else
-                                SFBasePart(TRootPart)
-                            end
-                        elseif TRootPart and not THead then
-                            SFBasePart(TRootPart)
-                        elseif not TRootPart and THead then
-                            SFBasePart(THead)
-                        elseif not TRootPart and not THead and Accessory and Handle then
-                            SFBasePart(Handle)
-                        else
-                            return Message("Error", "Target missing parts", 5)
-                        end
-
-                        BV:Destroy()
-                        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-                        workspace.CurrentCamera.CameraSubject = Humanoid
-
-                        repeat
-                            if scriptActive then
-                                RootPart.CFrame = getgenv().OldPos * CFrame.new(0, .5, 0)
-                                Character:SetPrimaryPartCFrame(getgenv().OldPos * CFrame.new(0, .5, 0))
-                                Humanoid:ChangeState("GettingUp")
-                                table.foreach(Character:GetChildren(), function(_, x)
-                                    if x:IsA("BasePart") then
-                                        x.Velocity, x.RotVelocity = Vector3.new(), Vector3.new()
-                                    end
-                                end)
-                                task.wait()
-                            end
-                        until not scriptActive or (RootPart.Position - getgenv().OldPos.p).Magnitude < 25
-                        workspace.FallenPartsDestroyHeight = getgenv().FPDH
-                    else
-                        return Message("Error", "Script failed", 5)
-                    end
-                end
-
-                local StartFling = function()
-                    if Targets[1] then 
-                        for _,x in next, Targets do 
-                            GetPlayer(x) 
-                        end 
-                    else 
-                        return 
-                    end
-
-                    if AllBool then
-                        for _,x in next, Players:GetPlayers() do
-                            SkidFling(x)
-                        end
-                    end
-
-                    for _,x in next, Targets do
-                        if GetPlayer(x) and GetPlayer(x) ~= Player then
-                            if GetPlayer(x).UserId ~= 2924145477 then
-                                local TPlayer = GetPlayer(x)
-                                if TPlayer then
-                                    SkidFling(TPlayer)
-                                end
-                            else
-                                Message("ERROR", "Cannot fling this user", 8)
-                            end
-                        elseif not GetPlayer(x) and not AllBool then
-                            Message("ERROR", "Target not found", 8)
-                        end
-                    end
-                end
-
-                local ScreenGui = Instance.new("ScreenGui")
-                local Frame = Instance.new("Frame")
-                local ToggleButton = Instance.new("TextButton")
-                local StatusLabel = Instance.new("TextLabel")
-                local TitleLabel = Instance.new("TextLabel")
-
-                ScreenGui.Name = "FlingMenu"
-                ScreenGui.Parent = game.CoreGui
-                ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-                Frame.Name = "MainFrame"
-                Frame.Parent = ScreenGui
-                Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                Frame.BorderSizePixel = 0
-                Frame.Position = UDim2.new(0.8, 0, 0.5, 0)
-                Frame.Size = UDim2.new(0, 150, 0, 120)
-                Frame.Active = true
-                Frame.Draggable = true
-
-                TitleLabel.Name = "TitleLabel"
-                TitleLabel.Parent = Frame
-                TitleLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-                TitleLabel.BorderSizePixel = 0
-                TitleLabel.Size = UDim2.new(1, 0, 0, 30)
-                TitleLabel.Font = Enum.Font.SourceSansBold
-                TitleLabel.Text = "Fling Menu"
-                TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-                TitleLabel.TextSize = 18
-
-                ToggleButton.Name = "ToggleButton"
-                ToggleButton.Parent = Frame
-                ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-                ToggleButton.Position = UDim2.new(0.1, 0, 0.35, 0)
-                ToggleButton.Size = UDim2.new(0.8, 0, 0, 30)
-                ToggleButton.Font = Enum.Font.SourceSans
-                ToggleButton.Text = "Toggle Script"
-                ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-                ToggleButton.TextSize = 16
-
-                StatusLabel.Name = "StatusLabel"
-                StatusLabel.Parent = Frame
-                StatusLabel.BackgroundTransparency = 1
-                StatusLabel.Position = UDim2.new(0.1, 0, 0.7, 0)
-                StatusLabel.Size = UDim2.new(0.8, 0, 0, 20)
-                StatusLabel.Font = Enum.Font.SourceSans
-                StatusLabel.Text = "Status: Active"
-                StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-                StatusLabel.TextSize = 14
-
-                ToggleButton.MouseButton1Click:Connect(function()
-                    scriptActive = not scriptActive
-                    if scriptActive then
-                        StatusLabel.Text = "Status: Active"
-                        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-                        Message("Script", "Enabled", 2)
-                        StartFling()
-                    else
-                        StatusLabel.Text = "Status: Inactive"
-                        StatusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-                        Message("Script", "Disabled", 2)
-                    end
-                end)
-
-                if not Welcome then 
-                    Message("Fling Script", "Press the toggle button to start", 6) 
-                end
-                Welcome = true
-            ]]},
+            {name = "Fling all", script = [[...]]}, -- Оригинальный скрипт
             {name = "Gravity", script = "pcall(function() loadstring(game:HttpGet('https://raw.githubusercontent.com/hm5650/Gravity-inverter/refs/heads/main/GI', true))() end)"},
             {name = "AXE HUB", script = "loadstring(game:HttpGet('https://raw.githubusercontent.com/zeroidxx/axe-hub/refs/heads/main/axehub%20nds.txt'))()"}
         }
@@ -709,85 +452,22 @@ function CreateMainGUI()
         local startY = 0
 
         for i, buttonInfo in ipairs(trollButtons) do
-            local button = Instance.new("TextButton")
-            button.Name = buttonInfo.name
-            button.Parent = ContentFrame
-            button.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
-            button.BorderSizePixel = 0
-            button.Position = UDim2.new(0.1, 0, startY + (i-1)*(buttonHeight + buttonSpacing), 0)
-            button.Size = UDim2.new(0.8, 0, 0, 40)
-            button.Font = Enum.Font.GothamBold
-            button.Text = buttonInfo.name
-            button.TextColor3 = Color3.fromRGB(50, 50, 50)
-            button.TextSize = 16
-            button.AutoButtonColor = false
-
-            -- Закругление кнопок
-            createCorner(button, 0.1)
-
-            -- Анимация при наведении
-            button.MouseEnter:Connect(function()
-                TweenService:Create(
-                    button,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                    {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}
-                ):Play()
-            end)
-
-            button.MouseLeave:Connect(function()
-                TweenService:Create(
-                    button,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                    {BackgroundColor3 = Color3.fromRGB(240, 240, 240)}
-                ):Play()
-            end)
-
-            -- Обработчик нажатия
-            button.MouseButton1Click:Connect(function()
-                ShowNotification("Скрипт", "Запускаем "..buttonInfo.name, Color3.fromRGB(100, 200, 255))
-                loadstring(buttonInfo.script)()
-            end)
+            -- Основная кнопка
+            local button = createChineseButton(ContentFrame, buttonInfo.name, UDim2.new(0.8, 0, 0.1, 0), UDim2.new(0.1, 0, startY + (i-1)*(buttonHeight + buttonSpacing), 0))
+            button.BackgroundColor3 = ColorPalette.Background
+            button.TextColor3 = ColorPalette.Text
 
             -- Если есть подкнопка
             if buttonInfo.subButton then
                 local subButtonVisible = false
-                local subButton = Instance.new("TextButton")
-                subButton.Name = buttonInfo.subButton.name
-                subButton.Parent = ContentFrame
-                subButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-                subButton.BorderSizePixel = 0
-                subButton.Position = UDim2.new(0.15, 0, startY + (i-1)*(buttonHeight + buttonSpacing) + buttonHeight, 0)
-                subButton.Size = UDim2.new(0.7, 0, 0, 35)
-                subButton.Font = Enum.Font.Gotham
-                subButton.Text = buttonInfo.subButton.name
-                subButton.TextColor3 = Color3.fromRGB(50, 50, 50)
-                subButton.TextSize = 14
+                local subButton = createChineseButton(ContentFrame, buttonInfo.subButton.name, UDim2.new(0.7, 0, 0.09, 0), UDim2.new(0.15, 0, startY + (i-1)*(buttonHeight + buttonSpacing) + buttonHeight, 0))
                 subButton.Visible = false
-                subButton.AutoButtonColor = false
-
-                -- Закругление подкнопок
-                createCorner(subButton, 0.1)
-
-                -- Анимация подкнопки
-                subButton.MouseEnter:Connect(function()
-                    TweenService:Create(
-                        subButton,
-                        TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                        {BackgroundColor3 = Color3.fromRGB(220, 220, 220)}
-                    ):Play()
-                end)
-
-                subButton.MouseLeave:Connect(function()
-                    TweenService:Create(
-                        subButton,
-                        TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                        {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}
-                    ):Play()
-                end)
+                subButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+                subButton.TextColor3 = ColorPalette.Text
 
                 -- Обработчик подкнопки
                 subButton.MouseButton1Click:Connect(function()
-                    ShowNotification("Скрипт", "Запускаем "..buttonInfo.subButton.name, Color3.fromRGB(100, 200, 255))
+                    ShowNotification("Скрипт", "Запускаем "..buttonInfo.subButton.name, ColorPalette.Primary)
                     loadstring(buttonInfo.subButton.script)()
                 end)
 
@@ -801,13 +481,13 @@ function CreateMainGUI()
                         subButton.Visible = true
                         TweenService:Create(
                             subButton,
-                            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                            {Size = UDim2.new(0.7, 0, 0, 35)}
+                            TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+                            {Size = UDim2.new(0.7, 0, 0.09, 0)}
                         ):Play()
                     else
                         TweenService:Create(
                             subButton,
-                            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                            TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.In),
                             {Size = UDim2.new(0.7, 0, 0, 0)}
                         ):Play()
                         delay(0.2, function()
@@ -816,6 +496,14 @@ function CreateMainGUI()
                     end
                 end)
             end
+
+            -- Обработчик основной кнопки
+            button.MouseButton1Click:Connect(function()
+                if not buttonInfo.subButton then
+                    ShowNotification("Скрипт", "Запускаем "..buttonInfo.name, ColorPalette.Primary)
+                    loadstring(buttonInfo.script)()
+                end
+            end)
         end
     end
 
@@ -838,42 +526,24 @@ function CreateMainGUI()
         local startY = 0
 
         for i, buttonInfo in ipairs(teleportButtons) do
-            local button = Instance.new("TextButton")
-            button.Name = buttonInfo.name
-            button.Parent = ContentFrame
-            button.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
-            button.BorderSizePixel = 0
-            button.Position = UDim2.new(0.1, 0, startY + (i-1)*(buttonHeight + buttonSpacing), 0)
-            button.Size = UDim2.new(0.8, 0, 0, 40)
-            button.Font = Enum.Font.GothamBold
-            button.Text = buttonInfo.name
-            button.TextColor3 = Color3.fromRGB(50, 50, 50)
-            button.TextSize = 16
-            button.AutoButtonColor = false
-
-            -- Закругление кнопок
-            createCorner(button, 0.1)
-
-            -- Анимация при наведении
-            button.MouseEnter:Connect(function()
-                TweenService:Create(
-                    button,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                    {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}
-                ):Play()
-            end)
-
-            button.MouseLeave:Connect(function()
-                TweenService:Create(
-                    button,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                    {BackgroundColor3 = Color3.fromRGB(240, 240, 240)}
-                ):Play()
-            end)
+            local button = createChineseButton(ContentFrame, buttonInfo.name, UDim2.new(0.8, 0, 0.1, 0), UDim2.new(0.1, 0, startY + (i-1)*(buttonHeight + buttonSpacing), 0))
+            button.BackgroundColor3 = ColorPalette.Background
+            button.TextColor3 = ColorPalette.Text
 
             -- Обработчик нажатия
             button.MouseButton1Click:Connect(function()
-                ShowNotification("Телепорт", "Переносим вас на "..buttonInfo.name, Color3.fromRGB(100, 200, 255))
+                ShowNotification("Телепорт", "Переносим вас на "..buttonInfo.name, ColorPalette.Primary)
+                
+                -- Эффект телепорта
+                local teleportEffect = Instance.new("ParticleEmitter")
+                teleportEffect.Parent = Player.Character.HumanoidRootPart
+                teleportEffect.Texture = "rbxassetid://296874871"
+                teleportEffect.LightEmission = 1
+                teleportEffect.Color = ColorSequence.new(ColorPalette.Primary)
+                teleportEffect.Size = NumberSequence.new(1)
+                teleportEffect.Lifetime = NumberRange.new(0.5)
+                teleportEffect.Speed = NumberRange.new(10)
+                teleportEffect.Rate = 100
                 
                 -- Создаем временную часть для телепортации
                 local part = Instance.new("Part")
@@ -889,46 +559,19 @@ function CreateMainGUI()
                     Player.Character.HumanoidRootPart.CFrame = CFrame.new(part.Position)
                 end
                 
-                -- Удаляем часть через секунду
+                -- Удаляем эффекты через секунду
                 delay(1, function()
+                    teleportEffect.Enabled = false
                     part:Destroy()
+                    teleportEffect:Destroy()
                 end)
             end)
         end
 
-        -- Создаем переключатель массового телепорта
-        local massTeleportToggle = Instance.new("TextButton")
-        massTeleportToggle.Name = "MassTeleportToggle"
-        massTeleportToggle.Parent = ContentFrame
-        massTeleportToggle.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
-        massTeleportToggle.BorderSizePixel = 0
-        massTeleportToggle.Position = UDim2.new(0.1, 0, 0.8, 0)
-        massTeleportToggle.Size = UDim2.new(0.8, 0, 0, 40)
-        massTeleportToggle.Font = Enum.Font.GothamBold
-        massTeleportToggle.Text = "Массовый телепорт: ВЫКЛ"
-        massTeleportToggle.TextColor3 = Color3.fromRGB(50, 50, 50)
-        massTeleportToggle.TextSize = 16
-        massTeleportToggle.AutoButtonColor = false
-
-        -- Закругление кнопки
-        createCorner(massTeleportToggle, 0.1)
-
-        -- Анимация при наведении
-        massTeleportToggle.MouseEnter:Connect(function()
-            TweenService:Create(
-                massTeleportToggle,
-                TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}
-            ):Play()
-        end)
-
-        massTeleportToggle.MouseLeave:Connect(function()
-            TweenService:Create(
-                massTeleportToggle,
-                TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {BackgroundColor3 = Color3.fromRGB(240, 240, 240)}
-            ):Play()
-        end)
+        -- Переключатель массового телепорта
+        local massTeleportToggle = createChineseButton(ContentFrame, "Массовый телепорт: ВЫКЛ", UDim2.new(0.8, 0, 0.1, 0), UDim2.new(0.1, 0, 0.8, 0))
+        massTeleportToggle.BackgroundColor3 = ColorPalette.Primary
+        massTeleportToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 
         -- Переменная для хранения состояния
         local isMassTeleportActive = false
@@ -940,7 +583,7 @@ function CreateMainGUI()
             
             if isMassTeleportActive then
                 massTeleportToggle.Text = "Массовый телепорт: ВКЛ"
-                ShowNotification("Телепорт", "Массовый телепорт активирован", Color3.fromRGB(0, 200, 0))
+                ShowNotification("Телепорт", "Массовый телепорт активирован", ColorPalette.Success)
                 
                 -- Запоминаем последнюю позицию телепорта
                 for _, buttonInfo in ipairs(teleportButtons) do
@@ -951,7 +594,7 @@ function CreateMainGUI()
                 end
             else
                 massTeleportToggle.Text = "Массовый телепорт: ВЫКЛ"
-                ShowNotification("Телепорт", "Массовый телепорт деактивирован", Color3.fromRGB(200, 0, 0))
+                ShowNotification("Телепорт", "Массовый телепорт деактивирован", ColorPalette.Error)
             end
             
             -- Запускаем цикл массового телепорта
@@ -959,7 +602,21 @@ function CreateMainGUI()
                 if lastTeleportPosition then
                     for _, player in ipairs(Players:GetPlayers()) do
                         if player ~= Player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                            -- Эффект телепорта для каждого игрока
+                            local effect = Instance.new("ParticleEmitter")
+                            effect.Parent = player.Character.HumanoidRootPart
+                            effect.Texture = "rbxassetid://296874871"
+                            effect.Color = ColorSequence.new(ColorPalette.Primary)
+                            effect.Lifetime = NumberRange.new(0.5)
+                            effect.Speed = NumberRange.new(5)
+                            effect.Size = NumberSequence.new(0.5)
+                            effect.Rate = 50
+                            
                             player.Character.HumanoidRootPart.CFrame = CFrame.new(lastTeleportPosition)
+                            
+                            delay(0.5, function()
+                                effect:Destroy()
+                            end)
                         end
                     end
                 end
@@ -973,14 +630,18 @@ function CreateMainGUI()
 
     -- Обработчики кнопок категорий
     TrollButton.MouseButton1Click:Connect(function()
-        TrollButton.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-        TeleportButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+        TrollButton.BackgroundColor3 = ColorPalette.Primary
+        TrollButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TeleportButton.BackgroundColor3 = ColorPalette.Background
+        TeleportButton.TextColor3 = ColorPalette.Text
         CreateTrollButtons()
     end)
 
     TeleportButton.MouseButton1Click:Connect(function()
-        TeleportButton.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-        TrollButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+        TeleportButton.BackgroundColor3 = ColorPalette.Primary
+        TeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TrollButton.BackgroundColor3 = ColorPalette.Background
+        TrollButton.TextColor3 = ColorPalette.Text
         CreateTeleportButtons()
     end)
 
@@ -988,12 +649,13 @@ function CreateMainGUI()
     local UserFrame = Instance.new("Frame")
     UserFrame.Name = "UserFrame"
     UserFrame.Parent = MainFrame
-    UserFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    UserFrame.BackgroundColor3 = ColorPalette.Background
     UserFrame.BorderSizePixel = 0
     UserFrame.Position = UDim2.new(0.05, 0, 0.85, 0)
     UserFrame.Size = UDim2.new(0.9, 0, 0.1, 0)
 
-    -- Закругление фрейма пользователя
+    -- Китайский стиль
+    createChineseBorder(UserFrame)
     createCorner(UserFrame, 0.1)
 
     -- Аватар пользователя
@@ -1019,7 +681,7 @@ function CreateMainGUI()
     Username.Size = UDim2.new(0.6, 0, 0.3, 0)
     Username.Font = Enum.Font.GothamBold
     Username.Text = Player.Name
-    Username.TextColor3 = Color3.fromRGB(50, 50, 50)
+    Username.TextColor3 = ColorPalette.Text
     Username.TextSize = 16
     Username.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -1032,50 +694,30 @@ function CreateMainGUI()
     DateLabel.Size = UDim2.new(0.6, 0, 0.3, 0)
     DateLabel.Font = Enum.Font.Gotham
     DateLabel.Text = currentDate
-    DateLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+    DateLabel.TextColor3 = ColorPalette.TextLight
     DateLabel.TextSize = 14
     DateLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Кнопка закрытия (справа, прямоугольная)
-    local CloseButton = Instance.new("TextButton")
-    CloseButton.Name = "CloseButton"
-    CloseButton.Parent = MainFrame
-    CloseButton.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-    CloseButton.BorderSizePixel = 0
-    CloseButton.Position = UDim2.new(0.7, 0, 0.85, 0)
-    CloseButton.Size = UDim2.new(0.25, 0, 0.1, 0)
-    CloseButton.Font = Enum.Font.GothamBold
-    CloseButton.Text = "Закрыть"
-    CloseButton.TextColor3 = Color3.fromRGB(50, 50, 50)
-    CloseButton.TextSize = 16
-
-    -- Закругление кнопки закрытия
-    createCorner(CloseButton, 0.1)
-
-    -- Анимация кнопки закрытия
-    CloseButton.MouseEnter:Connect(function()
-        TweenService:Create(
-            CloseButton,
-            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {BackgroundColor3 = Color3.fromRGB(220, 220, 220)}
-        ):Play()
-    end)
-
-    CloseButton.MouseLeave:Connect(function()
-        TweenService:Create(
-            CloseButton,
-            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}
-        ):Play()
-    end)
+    -- Кнопка закрытия в китайском стиле
+    local CloseButton = createChineseButton(MainFrame, "Закрыть", UDim2.new(0.25, 0, 0.1, 0), UDim2.new(0.7, 0, 0.85, 0))
 
     CloseButton.MouseButton1Click:Connect(function()
-        ShowNotification("Информация", "Меню закрыто", Color3.fromRGB(150, 150, 255))
+        ShowNotification("Информация", "Меню закрыто", ColorPalette.Primary)
+        
+        -- Анимация закрытия с эффектом исчезновения
+        local closeEffect = Instance.new("ParticleEmitter")
+        closeEffect.Parent = MainFrame
+        closeEffect.Texture = "rbxassetid://296874871"
+        closeEffect.Color = ColorSequence.new(ColorPalette.Primary)
+        closeEffect.Lifetime = NumberRange.new(1)
+        closeEffect.Speed = NumberRange.new(5)
+        closeEffect.Size = NumberSequence.new(1)
+        closeEffect.Rate = 100
         
         TweenService:Create(
             MainFrame,
             TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {Size = UDim2.new(0, 400, 0, 0)}
+            {Size = UDim2.new(0, 400, 0, 0), BackgroundTransparency = 1}
         ):Play()
         
         TweenService:Create(
@@ -1085,6 +727,7 @@ function CreateMainGUI()
         ):Play()
         
         delay(0.5, function()
+            closeEffect.Enabled = false
             MainGUI:Destroy()
         end)
     end)
@@ -1118,30 +761,45 @@ function CreateMainGUI()
         end
     end)
 
-    -- Плавное появление
+    -- Плавное появление с эффектом
     MainFrame.Size = UDim2.new(0, 400, 0, 0)
     MainFrame.Position = UDim2.new(0.5, -200, 0.5, 0)
+    MainFrame.BackgroundTransparency = 1
+    
+    local appearEffect = Instance.new("ParticleEmitter")
+    appearEffect.Parent = MainFrame
+    appearEffect.Texture = "rbxassetid://296874871"
+    appearEffect.Color = ColorSequence.new(ColorPalette.Secondary)
+    appearEffect.Lifetime = NumberRange.new(1)
+    appearEffect.Speed = NumberRange.new(5)
+    appearEffect.Size = NumberSequence.new(1)
+    appearEffect.Rate = 100
     
     TweenService:Create(
         MainFrame,
-        TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-        {Size = UDim2.new(0, 400, 0, 500)}
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {Size = UDim2.new(0, 400, 0, 500), BackgroundTransparency = 0}
     ):Play()
     
     TweenService:Create(
         MainFrame,
-        TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
         {Position = UDim2.new(0.5, -200, 0.5, -250)}
     ):Play()
+    
+    delay(1, function()
+        appearEffect.Enabled = false
+        appearEffect:Destroy()
+    end)
 
     -- Обработчик F5 для скрытия/показа GUI
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if not gameProcessed and input.KeyCode == Enum.KeyCode.F5 then
             MainGUI.Enabled = not MainGUI.Enabled
             if MainGUI.Enabled then
-                ShowNotification("Информация", "Меню показано", Color3.fromRGB(150, 150, 255))
+                ShowNotification("Информация", "Меню показано", ColorPalette.Primary)
             else
-                ShowNotification("Информация", "Меню скрыто", Color3.fromRGB(150, 150, 255))
+                ShowNotification("Информация", "Меню скрыто", ColorPalette.Primary)
             end
         end
     end)
